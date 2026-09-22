@@ -49,10 +49,14 @@ def check_graph_credentials() -> bool:
     return _credentials() is not None
 
 
+def _default_user_id() -> str:
+    return str(get_scoped_secret("MSGRAPH_DEFAULT_USER_ID", "") or "").strip()
+
+
 def _user_path(args: dict[str, Any], suffix: str) -> str:
-    user_id = str(args.get("user_id") or "").strip()
+    user_id = str(args.get("user_id") or _default_user_id()).strip()
     if not user_id or any(char in user_id for char in "/?#"):
-        raise ValueError("user_id is required and must be a user ID or UPN")
+        raise ValueError("user_id is required, or MSGRAPH_DEFAULT_USER_ID must be configured, and must be a user ID or UPN")
     return f"/users/{user_id}/{suffix.lstrip('/')}"
 
 
@@ -81,7 +85,7 @@ CALENDAR_VIEW_SCHEMA = {
         "timezone": {"type": "string", "description": "Optional Outlook timezone for returned event times."},
         "top": {"type": "integer", "description": "Optional page size from 1 to 1000."},
         "next_link": {"type": "string", "description": "Opaque @odata.nextLink from an earlier call."},
-    }, "required": ["user_id", "start_date_time", "end_date_time"]},
+    }, "required": ["start_date_time", "end_date_time"]},
 }
 
 
@@ -98,7 +102,7 @@ async def calendar_view(args: dict[str, Any], **kwargs) -> str:
 
 
 GET_EVENT_SCHEMA = {"name": "msgraph_get_event", "description": "Get one Microsoft Graph calendar event by ID.",
-                    "parameters": {"type": "object", "properties": {"user_id": {"type": "string"}, "event_id": {"type": "string"}}, "required": ["user_id", "event_id"]}}
+                    "parameters": {"type": "object", "properties": {"user_id": {"type": "string", "description": "Optional mailbox ID or UPN; defaults to MSGRAPH_DEFAULT_USER_ID."}, "event_id": {"type": "string"}}, "required": ["event_id"]}}
 
 
 async def get_event(args: dict[str, Any], **kwargs) -> str:
@@ -110,7 +114,7 @@ LIST_MESSAGES_SCHEMA = {"name": "msgraph_list_messages", "description": "List Mi
                             "user_id": {"type": "string"}, "folder_id": {"type": "string"}, "filter": {"type": "string"}, "search": {"type": "string"},
                             "select": {"type": "string", "description": "Comma-separated properties; defaults to sender,subject,receivedDateTime,isRead,webLink."},
                             "orderby": {"type": "string"}, "top": {"type": "integer"}, "next_link": {"type": "string"},
-                        }, "required": ["user_id"]}}
+                        }, "required": []}}
 
 
 async def list_messages(args: dict[str, Any], **kwargs) -> str:
@@ -127,7 +131,7 @@ async def list_messages(args: dict[str, Any], **kwargs) -> str:
 
 
 GET_MESSAGE_SCHEMA = {"name": "msgraph_get_message", "description": "Get one Microsoft Graph email message by ID, optionally including its body.",
-                     "parameters": {"type": "object", "properties": {"user_id": {"type": "string"}, "message_id": {"type": "string"}, "select": {"type": "string"}}, "required": ["user_id", "message_id"]}}
+                     "parameters": {"type": "object", "properties": {"user_id": {"type": "string", "description": "Optional mailbox ID or UPN; defaults to MSGRAPH_DEFAULT_USER_ID."}, "message_id": {"type": "string"}, "select": {"type": "string"}}, "required": ["message_id"]}}
 
 
 async def get_message(args: dict[str, Any], **kwargs) -> str:
@@ -137,7 +141,7 @@ async def get_message(args: dict[str, Any], **kwargs) -> str:
 
 
 LIST_CONTACTS_SCHEMA = {"name": "msgraph_list_contacts", "description": "List Microsoft Graph contacts, optionally filtering by email address.",
-                       "parameters": {"type": "object", "properties": {"user_id": {"type": "string"}, "folder_id": {"type": "string"}, "email": {"type": "string"}, "select": {"type": "string"}, "top": {"type": "integer"}, "next_link": {"type": "string"}}, "required": ["user_id"]}}
+                       "parameters": {"type": "object", "properties": {"user_id": {"type": "string", "description": "Optional mailbox ID or UPN; defaults to MSGRAPH_DEFAULT_USER_ID."}, "folder_id": {"type": "string"}, "email": {"type": "string"}, "select": {"type": "string"}, "top": {"type": "integer"}, "next_link": {"type": "string"}}, "required": []}}
 
 
 async def list_contacts(args: dict[str, Any], **kwargs) -> str:
@@ -157,7 +161,7 @@ async def list_contacts(args: dict[str, Any], **kwargs) -> str:
 
 
 GET_CONTACT_SCHEMA = {"name": "msgraph_get_contact", "description": "Get one Microsoft Graph contact by ID.",
-                     "parameters": {"type": "object", "properties": {"user_id": {"type": "string"}, "contact_id": {"type": "string"}, "folder_id": {"type": "string"}}, "required": ["user_id", "contact_id"]}}
+                     "parameters": {"type": "object", "properties": {"user_id": {"type": "string", "description": "Optional mailbox ID or UPN; defaults to MSGRAPH_DEFAULT_USER_ID."}, "contact_id": {"type": "string"}, "folder_id": {"type": "string"}}, "required": ["contact_id"]}}
 
 
 async def get_contact(args: dict[str, Any], **kwargs) -> str:

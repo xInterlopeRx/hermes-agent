@@ -67,6 +67,23 @@ def test_credentials_are_read_from_active_scoped_secret_mapping(graph_credential
     assert credentials.client_secret == "secret-from-bitwarden"
 
 
+def test_default_mailbox_is_read_from_active_scoped_secret_mapping(graph_credentials, monkeypatch):
+    monkeypatch.setattr(
+        tools,
+        "get_scoped_secret",
+        lambda name, default=None: {
+            **graph_credentials,
+            "MSGRAPH_DEFAULT_USER_ID": "person@example.com",
+        }.get(name, default),
+    )
+
+    assert tools._default_user_id() == "person@example.com"
+    assert tools.CALENDAR_VIEW_SCHEMA["parameters"]["required"] == [
+        "start_date_time",
+        "end_date_time",
+    ]
+
+
 @pytest.mark.anyio
 async def test_calendar_view_targets_explicit_mailbox_and_preserves_timezone(graph_credentials, monkeypatch):
     client = _FakeGraphClient({"value": [{"subject": "Planning"}]})

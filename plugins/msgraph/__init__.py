@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from plugins.msgraph import tools
+from . import tools
 
 
 _TOOLS = (
