@@ -1,0 +1,31 @@
+name: msgraph
+label: Microsoft Graph
+kind: backend
+version: 1.0.0
+description: Read Microsoft Graph calendar, mail, and contact data.
+tags: [microsoft, graph, calendar, mail, contacts]
+provides_tools:
+  - msgraph_calendar_view
+  - msgraph_get_event
+  - msgraph_list_messages
+  - msgraph_get_message
+  - msgraph_list_contacts
+  - msgraph_get_contact
+requires_env:
+  - name: MSGRAPH_CLIENT_ID
+    description: Azure app registration client ID
+    prompt: Microsoft Graph client ID
+    password: false
+  - name: MSGRAPH_CLIENT_SECRET
+    description: Azure app registration client secret
+    prompt: Microsoft Graph client secret
+    password: true
+  - name: MSGRAPH_TENANT_ID
+    description: Azure tenant ID for the Graph app registration
+    prompt: Microsoft Graph tenant ID
+    password: false
+optional_env:
+  - name: MSGRAPH_DEFAULT_USER_ID
+    description: Default mailbox user ID or UPN used by Graph tools when user_id is omitted
+    prompt: Default Microsoft Graph mailbox UPN or user ID
+    password: false
